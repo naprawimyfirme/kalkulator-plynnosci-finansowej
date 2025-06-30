@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Kalkulator Analizy Płynności Finansowej</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Ogólne style strony */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+    }
+    section {
+      padding: 40px 0;
+    }
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    .t68 {
+      background-color: #fff;
+      padding: 40px 0;
+    }
+    .t279 {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .t69 {
+      flex: 1;
+      max-width: 1280px;
+    }
+    .t73 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #333;
+      text-align: center;
+    }
+    .dh-btn-primary {
+      background-color: #8e42ff;
+      color: #fff;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+      display: inline-block;
+      margin-top: 15px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .dh-btn-primary:hover {
+      background-color: #363636;
+    }
+    .calculator-form {
+      background-color: #f0f0f0;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .form-sections {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+    .form-section {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #8e42ff;
+    }
+    .form-section h3 {
+      margin-top: 0;
+      color: #333;
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+    }
+    .assets-section {
+      border-left-color: #4CAF50;
+      background-color: rgba(76, 175, 80, 0.1);
+    }
+    .liabilities-section {
+      border-left-color: #f44336;
+      background-color: rgba(244, 67, 54, 0.1);
+    }
+    .calculator-form .form-group {
+      margin-bottom: 15px;
+    }
+    .calculator-form label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 1rem;
+      color: #333;
+      position: relative;
+    }
+    .calculator-form input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .help-btn {
+      background: #8e42ff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      width: 18px;
+      height: 18px;
+      font-size: 10px;
+      cursor: pointer;
+      margin-left: 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .help-btn:before {
+      content: "i";
+    }
+    .tooltip {
+      display: none;
+      position: absolute;
+      background: #333;
+      color: white;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      max-width: 250px;
+      z-index: 1000;
+      top: 25px;
+      left: 0;
+    }
+    .tooltip.show {
+      display: block;
+    }
+    .results-section {
+      display: none;
+      margin-top: 30px;
+    }
+    .liquidity-indicators {
+      margin: 20px 0;
+    }
+    .liquidity-indicator {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border-left: 4px solid;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .liquidity-indicator.excellent {
+      border-left-color: #4CAF50;
+      background-color: #f8fff8;
+    }
+    .liquidity-indicator.good {
+      border-left-color: #8BC34A;
+      background-color: #f8fff8;
+    }
+    .liquidity-indicator.acceptable {
+      border-left-color: #FFC107;
+      background-color: #fffdf0;
+    }
+    .liquidity-indicator.poor {
+      border-left-color: #f44336;
+      background-color: #fff8f8;
+    }
+    .indicator-info {
+      flex: 1;
+    }
+    .indicator-info h4 {
+      margin: 0 0 5px 0;
+      font-size: 1.1rem;
+    }
+    .indicator-info p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .indicator-result {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #333;
+    }
+    .chart-section {
+      margin-top: 30px;
+      text-align: center;
+    }
+    .chart-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .chart-legend {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+    .color-box {
+      width: 15px;
+      height: 15px;
+      margin-right: 10px;
+      border-radius: 2px;
+    }
+    #chartWrapper {
+      width: 200px;
+      height: 200px;
+      margin: 20px auto;
+    }
+    .interpretation-section {
+      margin-top: 30px;
+      background-color: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .interpretation-section h3 {
+      color: #333;
+      margin-top: 0;
+    }
+    .interpretation-text {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border-left: 3px solid #8e42ff;
+    }
+    @media (max-width: 768px) {
+      .form-sections {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="t68">
+    <div class="container t279">
+      <div class="t69">
+        <h2 class="t73">Kalkulator Analizy Płynności Finansowej</h2>
+        <div class="calculator-form">
+          <form id="liquidityForm">
+            <div class="form-sections">
+              <!-- Sekcja Aktywów -->
+              <div class="form-section assets-section">
+                <h3>AKTYWA OBROTOWE (co firma MA)</h3>
+                
+                <div class="form-group">
+                  <label for="cash">
+                    Gotówka w kasie i na kontach (zł):
+                    <button type="button" class="help-btn" data-tooltip="cash"></button>
+                    <div class="tooltip" id="tooltip-cash">
+                      Środki pieniężne dostępne natychmiast - gotówka w kasie, na kontach bieżących i oszczędnościowych
+                    </div>
+                  </label>
+                  <input type="number" id="cash" name="cash" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                  <label for="investments">
+                    Lokaty i inwestycje krótkoterminowe (zł):
+                    <button type="button" class="help-btn" data-tooltip="investments"></button>
+                    <div class="tooltip" id="tooltip-investments">
+                      Lokaty terminowe, obligacje skarbowe i inne inwestycje które można szybko zamienić na gotówkę
+                    </div>
+                  </label>
+                  <input type="number" id="investments" name="investments" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                  <label for="receivables">
+                    Należności od klientów (zł):
+                    <button type="button" class="help-btn" data-tooltip="receivables"></button>
+                    <div class="tooltip" id="tooltip-receivables">
+                      Kwoty które klienci są Ci winni za dostarczone towary lub usługi (faktury do zapłacenia)
+                    </div>
+                  </label>
+                  <input type="number" id="receivables" name="receivables" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                  <label for="inventory">
+                    Zapasy towarów/materiałów (zł):
+                    <button type="button" class="help-btn" data-tooltip="inventory"></button>
+                    <div class="tooltip" id="tooltip-inventory">
+                      Wartość towarów, surowców, materiałów i produktów gotowych które posiadasz w magazynie
+                    </div>
+                  </label>
+                  <input type="number" id="inventory" name="inventory" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                  <label for="prepayments">
+                    Przedpłaty i rozliczenia (zł):
+                    <button type="button" class="help-btn" data-tooltip="prepayments"></button>
+                    <div class="tooltip" id="tooltip-prepayments">
+                      Kwoty zapłacone z góry (np. ubezpieczenia, czynsze) oraz rozliczenia międzyokresowe
+                    </div>
+                  </label>
+                  <input type="number" id="prepayments" name="prepayments" step="0.01" min="0">
+                </div>
+              </div>
+
+              <!-- Sekcja Zobowiązań -->
+              <div class="form-section liabilities-section">
+                <h3>ZOBOWIĄZANIA KRÓTKOTERMINOWE (co firma MUSI ZAPŁACIĆ)</h3>
+                
+                <div class="form-group">
+                  <label for="tradePayables">
+                    Faktury od dostawców (zł):
+                    <button type="button" class="help-btn" data-tooltip="tradePayables"></button>
+                    <div class="tooltip" id="tooltip-tradePayables">
+                      Kwoty które musisz zapłacić dostawcom za otrzymane towary lub usługi
+                    </div>
+                  </label>
+                  <input type="number" id="tradePayables" name="tradePayables" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                  <label for="shortTermLoans">
+                    Kredyty i pożyczki (do roku) (zł):
+                    <button type="button" class="help-btn" data-tooltip="shortTermLoans"></button>
+                    <div class="tooltip" id="tooltip-shortTermLoans">
+                      Kredyty w rachunku bieżącym, pożyczki i raty kredytów długoterminowych do spłaty w ciągu roku
+                    </div>
+                  </label>
+                  <input type="number" id="shortTermLoans" name="shortTermLoans" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                  <label for="taxes">
+                    Podatki do zapłacenia (zł):
+                    <button type="button" class="help-btn" data-tooltip="taxes"></button>
+                    <div class="tooltip" id="tooltip-taxes">
+                      VAT, podatek dochodowy, składki ZUS i inne obciążenia publiczne do zapłacenia
+                    </div>
+                  </label>
+                  <input type="number" id="taxes" name="taxes" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                  <label for="salaries">
+                    Wypłaty dla pracowników (zł):
+                    <button type="button" class="help-btn" data-tooltip="salaries"></button>
+                    <div class="tooltip" id="tooltip-salaries">
+                      Wynagrodzenia do wypłacenia pracownikom oraz związane z nimi składki
+                    </div>
+                  </label>
+                  <input type="number" id="salaries" name="salaries" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                  <label for="otherLiabilities">
+                    Inne rachunki do zapłacenia (zł):
+                    <button type="button" class="help-btn" data-tooltip="otherLiabilities"></button>
+                    <div class="tooltip" id="tooltip-otherLiabilities">
+                      Pozostałe zobowiązania: czynsz, media, ubezpieczenia, usługi itp.
+                    </div>
+                  </label>
+                  <input type="number" id="otherLiabilities" name="otherLiabilities" step="0.01" min="0">
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align: center;">
+              <button type="button" class="dh-btn-primary" onclick="calculateLiquidity()">Oblicz płynność finansową</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Sekcja wyników -->
+        <div id="results" class="results-section"></div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    let assetsChart;
+
+    // Inicjalizacja strony
+    function initializePage() {
+      initializeTooltips();
+      addInputValidation();
+    }
+
+    // Obsługa tooltipów
+    function initializeTooltips() {
+      document.querySelectorAll('.help-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const tooltipId = 'tooltip-' + this.getAttribute('data-tooltip');
+          const tooltip = document.getElementById(tooltipId);
+          
+          // Ukryj wszystkie tooltips
+          hideAllTooltips();
+          
+          // Pokaż kliknięty tooltip
+          tooltip.classList.add('show');
+        });
+      });
+
+      // Ukryj tooltip przy kliknięciu poza nim
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.help-btn') && !e.target.closest('.tooltip')) {
+          hideAllTooltips();
+        }
+      });
+    }
+
+    function hideAllTooltips() {
+      document.querySelectorAll('.tooltip').forEach(tooltip => {
+        tooltip.classList.remove('show');
+      });
+    }
+
+    // Walidacja pól (tylko liczby dodatnie)
+    function addInputValidation() {
+      document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', function() {
+          if (this.value < 0) this.value = 0;
+        });
+      });
+    }
+
+    // Formatowanie waluty
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('pl-PL', {
+        style: 'currency',
+        currency: 'PLN'
+      }).format(amount);
+    }
+
+    // Określenie statusu wskaźnika
+    function determineRatioStatus(value, ratioType) {
+      switch(ratioType) {
+        case 'current':
+          if (value >= 2.0) return 'excellent';
+          if (value >= 1.2) return 'good';
+          if (value >= 1.0) return 'acceptable';
+          return 'poor';
+        case 'quick':
+          if (value >= 1.0) return 'excellent';
+          if (value >= 0.7) return 'good';
+          if (value >= 0.5) return 'acceptable';
+          return 'poor';
+        case 'immediate':
+          if (value >= 0.2) return 'excellent';
+          if (value >= 0.1) return 'good';
+          if (value >= 0.05) return 'acceptable';
+          return 'poor';
+        default:
+          return 'good';
+      }
+    }
+
+    // Pobieranie wartości z formularza
+    function getFormValues() {
+      return {
+        cash: parseFloat(document.getElementById('cash').value) || 0,
+        investments: parseFloat(document.getElementById('investments').value) || 0,
+        receivables: parseFloat(document.getElementById('receivables').value) || 0,
+        inventory: parseFloat(document.getElementById('inventory').value) || 0,
+        prepayments: parseFloat(document.getElementById('prepayments').value) || 0,
+        tradePayables: parseFloat(document.getElementById('tradePayables').value) || 0,
+        shortTermLoans: parseFloat(document.getElementById('shortTermLoans').value) || 0,
+        taxes: parseFloat(document.getElementById('taxes').value) || 0,
+        salaries: parseFloat(document.getElementById('salaries').value) || 0,
+        otherLiabilities: parseFloat(document.getElementById('otherLiabilities').value) || 0
+      };
+    }
+
+    // Główna funkcja obliczeniowa
+    function calculateLiquidity() {
+      const values = getFormValues();
+      
+      // Obliczenia sum
+      const totalCurrentAssets = values.cash + values.investments + values.receivables + values.inventory + values.prepayments;
+      const totalCurrentLiabilities = values.tradePayables + values.shortTermLoans + values.taxes + values.salaries + values.otherLiabilities;
+      
+      if (totalCurrentLiabilities === 0) {
+        alert("Suma zobowiązań nie może być zerowa. Wprowadź wartości zobowiązań.");
+        return;
+      }
+      
+      // Obliczenia wskaźników
+      const currentRatio = totalCurrentAssets / totalCurrentLiabilities;
+      const quickRatio = (values.cash + values.investments + values.receivables) / totalCurrentLiabilities;
+      const immediateRatio = (values.cash + values.investments) / totalCurrentLiabilities;
+      const workingCapital = totalCurrentAssets - totalCurrentLiabilities;
+      
+      const results = {
+        values: values,
+        totalCurrentAssets: totalCurrentAssets,
+        totalCurrentLiabilities: totalCurrentLiabilities,
+        currentRatio: currentRatio,
+        quickRatio: quickRatio,
+        immediateRatio: immediateRatio,
+        workingCapital: workingCapital
+      };
+      
+      displayResults(results);
+      updatePageHeight();
+    }
+
+    // Wyświetlanie wyników
+    function displayResults(results) {
+      const resultsDiv = document.getElementById('results');
+      
+      const html = `
+        <h2>Wynik analizy płynności</h2>
+        
+        <h3>📊 Wskaźniki płynności finansowej</h3>
+        <div class="liquidity-indicators">
+          ${generateLiquidityIndicator(
+            "Wskaźnik płynności bieżącej",
+            "Pokazuje czy firma może pokryć swoje bieżące zobowiązania wszystkimi aktywami obrotowymi",
+            results.currentRatio.toFixed(2),
+            determineRatioStatus(results.currentRatio, 'current')
+          )}
+          
+          ${generateLiquidityIndicator(
+            "Wskaźnik płynności szybkiej",
+            "Pokazuje zdolność pokrycia zobowiązań bez sprzedaży zapasów",
+            results.quickRatio.toFixed(2),
+            determineRatioStatus(results.quickRatio, 'quick')
+          )}
+          
+          ${generateLiquidityIndicator(
+            "Wskaźnik płynności natychmiastowej",
+            "Pokazuje zdolność pokrycia zobowiązań tylko środkami pieniężnymi",
+            results.immediateRatio.toFixed(2),
+            determineRatioStatus(results.immediateRatio, 'immediate')
+          )}
+          
+          ${generateLiquidityIndicator(
+            "Kapitał pracujący",
+            "Różnica między aktywami obrotowymi a zobowiązaniami krótkoterminowymi",
+            formatCurrency(results.workingCapital),
+            results.workingCapital >= 0 ? 'good' : 'poor'
+          )}
+        </div>
+        
+        ${generateInterpretation(results)}
+        
+        ${generateAssetsChart(results.values, results.totalCurrentAssets)}
+      `;
+      
+      resultsDiv.innerHTML = html;
+      resultsDiv.style.display = 'block';
+      
+      // Narysuj wykres aktywów
+      drawAssetsChart(results.values);
+    }
+
+    // Generowanie wskaźnika płynności
+    function generateLiquidityIndicator(title, description, value, status) {
+      return `
+        <div class="liquidity-indicator ${status}">
+          <div class="indicator-info">
+            <h4>${title}</h4>
+            <p>${description}</p>
+          </div>
+          <div class="indicator-result">${value}</div>
+        </div>
+      `;
+    }
+
+    // Generowanie sekcji wykresu aktywów
+    function generateAssetsChart(values, totalAssets) {
+      if (totalAssets === 0) {
+        return `
+          <div class="chart-section">
+            <h3>💼 Struktura aktywów obrotowych</h3>
+            <p>Brak aktywów do wyświetlenia na wykresie.</p>
+          </div>
+        `;
+      }
+
+      const cashPercentage = ((values.cash / totalAssets) * 100).toFixed(1);
+      const investmentsPercentage = ((values.investments / totalAssets) * 100).toFixed(1);
+      const receivablesPercentage = ((values.receivables / totalAssets) * 100).toFixed(1);
+      const inventoryPercentage = ((values.inventory / totalAssets) * 100).toFixed(1);
+      const prepaymentsPercentage = ((values.prepayments / totalAssets) * 100).toFixed(1);
+      
+      return `
+        <div class="chart-section">
+          <h3>💼 Struktura aktywów obrotowych</h3>
+          <div class="chart-container">
+            <div class="chart-legend">
+              ${values.cash > 0 ? `<div class="legend-item">
+                <div class="color-box" style="background-color: #FF6384;"></div>
+                <span><strong>Gotówka:</strong> ${formatCurrency(values.cash)} (${cashPercentage}%)</span>
+              </div>` : ''}
+              ${values.investments > 0 ? `<div class="legend-item">
+                <div class="color-box" style="background-color: #36A2EB;"></div>
+                <span><strong>Inwestycje:</strong> ${formatCurrency(values.investments)} (${investmentsPercentage}%)</span>
+              </div>` : ''}
+              ${values.receivables > 0 ? `<div class="legend-item">
+                <div class="color-box" style="background-color: #FFCE56;"></div>
+                <span><strong>Należności:</strong> ${formatCurrency(values.receivables)} (${receivablesPercentage}%)</span>
+              </div>` : ''}
+              ${values.inventory > 0 ? `<div class="legend-item">
+                <div class="color-box" style="background-color: #4BC0C0;"></div>
+                <span><strong>Zapasy:</strong> ${formatCurrency(values.inventory)} (${inventoryPercentage}%)</span>
+              </div>` : ''}
+              ${values.prepayments > 0 ? `<div class="legend-item">
+                <div class="color-box" style="background-color: #9966FF;"></div>
+                <span><strong>Przedpłaty:</strong> ${formatCurrency(values.prepayments)} (${prepaymentsPercentage}%)</span>
+              </div>` : ''}
+            </div>
+            <div id="chartWrapper">
+              <canvas id="assetsChart" width="200" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Rysowanie wykresu aktywów - całkowicie przepisane
+    function drawAssetsChart(values) {
+      // Poczekaj na renderowanie DOM
+      setTimeout(() => {
+        const chartElement = document.getElementById('assetsChart');
+        if (!chartElement) {
+          console.error('Element canvas assetsChart nie został znaleziony');
+          return;
+        }
+        
+        // Zniszcz poprzedni wykres
+        if (assetsChart) {
+          assetsChart.destroy();
+          assetsChart = null;
+        }
+        
+        // Przygotuj dane
+        const rawData = [
+          { label: 'Gotówka', value: values.cash, color: '#FF6384' },
+          { label: 'Inwestycje', value: values.investments, color: '#36A2EB' },
+          { label: 'Należności', value: values.receivables, color: '#FFCE56' },
+          { label: 'Zapasy', value: values.inventory, color: '#4BC0C0' },
+          { label: 'Przedpłaty', value: values.prepayments, color: '#9966FF' }
+        ];
+        
+        // Filtruj tylko wartości większe od 0
+        const chartData = rawData.filter(item => item.value > 0);
+        
+        if (chartData.length === 0) {
+          console.log('Brak danych do wyświetlenia na wykresie');
+          return;
+        }
+        
+        // Stwórz wykres
+        const ctx = chartElement.getContext('2d');
+        assetsChart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: chartData.map(item => item.label),
+            datasets: [{
+              data: chartData.map(item => item.value),
+              backgroundColor: chartData.map(item => item.color),
+              borderWidth: 2,
+              borderColor: '#fff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const label = context.label || '';
+                    const value = formatCurrency(context.parsed);
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                    return `${label}: ${value} (${percentage}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }, 100);
+    }
+
+    // Generowanie interpretacji
+    function generateInterpretation(results) {
+      return `
+        <div class="interpretation-section">
+          <h3>📈 Interpretacja wyników</h3>
+          
+          <div class="interpretation-text">
+            <strong>Płynność bieżąca (${results.currentRatio.toFixed(2)}):</strong><br>
+            ${getInterpretationText(results.currentRatio, 'current')}
+          </div>
+          
+          <div class="interpretation-text">
+            <strong>Płynność szybka (${results.quickRatio.toFixed(2)}):</strong><br>
+            ${getInterpretationText(results.quickRatio, 'quick')}
+          </div>
+          
+          <div class="interpretation-text">
+            <strong>Płynność natychmiastowa (${results.immediateRatio.toFixed(2)}):</strong><br>
+            ${getInterpretationText(results.immediateRatio, 'immediate')}
+          </div>
+          
+          <div class="interpretation-text">
+            <strong>Kapitał pracujący (${formatCurrency(results.workingCapital)}):</strong><br>
+            ${results.workingCapital >= 0 
+              ? "Pozytywny kapitał pracujący oznacza, że Twoja firma ma wystarczająco aktywów obrotowych do pokrycia bieżących zobowiązań. To dobry znak dla płynności finansowej."
+              : "Ujemny kapitał pracujący oznacza, że zobowiązania przewyższają aktywa obrotowe. Może to wskazywać na problemy z płynnością i wymaga natychmiastowej uwagi."
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    // Teksty interpretacyjne
+    function getInterpretationText(value, type) {
+      switch(type) {
+        case 'current':
+          if (value >= 2.0) return "Doskonała płynność! Firma ma ponad dwukrotnie więcej aktywów niż zobowiązań. Możesz spokojnie pokryć wszystkie bieżące rachunki.";
+          if (value >= 1.2) return "Dobra płynność finansowa. Firma ma wystarczające aktywa do pokrycia zobowiązań z bezpiecznym marginesem.";
+          if (value >= 1.0) return "Akceptowalna płynność, ale bez dużego marginesu bezpieczeństwa. Warto zwiększyć poziom aktywów obrotowych.";
+          return "Problemy z płynnością! Zobowiązania przewyższają aktywa obrotowe. Konieczne są natychmiastowe działania.";
+          
+        case 'quick':
+          if (value >= 1.0) return "Bardzo dobra szybka płynność. Nawet bez sprzedaży zapasów możesz pokryć wszystkie zobowiązania.";
+          if (value >= 0.7) return "Dobra szybka płynność. Większość zobowiązań można pokryć bez konieczności sprzedaży zapasów.";
+          if (value >= 0.5) return "Średnia szybka płynność. Częściowo zależysz od sprzedaży zapasów do pokrycia zobowiązań.";
+          return "Słaba szybka płynność. Silnie zależysz od sprzedaży zapasów, co może być ryzykowne.";
+          
+        case 'immediate':
+          if (value >= 0.2) return "Bardzo dobra płynność natychmiastowa. Masz wystarczająco gotówki na pokrycie pilnych płatności.";
+          if (value >= 0.1) return "Dobra płynność natychmiastowa. Posiadasz rozsądną ilość środków pieniężnych.";
+          if (value >= 0.05) return "Średnia płynność natychmiastowa. Warto zwiększyć rezerwy gotówkowe.";
+          return "Niska płynność natychmiastowa. Mało gotówki dostępnej na pilne płatności.";
+          
+        default:
+          return "";
+      }
+    }
+
+    // Funkcje iframe
+    function updatePageHeight() {
+      setTimeout(() => {
+        const height = document.body.scrollHeight;
+        try {
+          window.parent.postMessage({ iframeHeight: height }, '*');
+        } catch (e) {
+          console.log('Nie można zaktualizować wysokości iframe:', e);
+        }
+      }, 300);
+    }
+
+    function sendHeightToParent() {
+      const height = document.body.scrollHeight;
+      try {
+        window.parent.postMessage({ iframeHeight: height }, '*');
+      } catch (e) {
+        console.log('Nie można wysłać wysokości do rodzica:', e);
+      }
+    }
+
+    // Event listeners
+    window.addEventListener('load', function() {
+      initializePage();
+      sendHeightToParent();
+    });
+    
+    window.addEventListener('resize', sendHeightToParent);
+    
+    // Wyślij wysokość także po kliknięciach
+    document.addEventListener('click', function() {
+      setTimeout(sendHeightToParent, 300);
+    });
+
+    // Obsługa MutationObserver dla śledzenia zmian w DOM
+    if (typeof MutationObserver !== 'undefined') {
+      const observer = new MutationObserver(function(mutations) {
+        let shouldUpdate = false;
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'childList' || mutation.type === 'attributes') {
+            shouldUpdate = true;
+          }
+        });
+        if (shouldUpdate) {
+          setTimeout(sendHeightToParent, 100);
+        }
+      });
+      
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+    }
+  </script>
+</body>
+</html>
